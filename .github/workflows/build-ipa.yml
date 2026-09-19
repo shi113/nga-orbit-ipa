@@ -2,8 +2,6 @@ name: Build NGA Orbit IPA
 
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
 
 permissions:
   contents: read
@@ -17,11 +15,6 @@ jobs:
         with:
           repository: KiZmzz/nga-orbit-ios
           path: src
-
-      - name: Select newest Xcode
-        uses: maxim-lobanov/setup-xcode@v1
-        with:
-          xcode-version: latest
 
       - name: Install tools
         run: brew install zip
