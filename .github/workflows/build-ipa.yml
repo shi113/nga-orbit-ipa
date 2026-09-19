@@ -1,51 +1,37 @@
-name: Build NGA Orbit IPA
+name: Build IPA
 
 on:
   workflow_dispatch:
-
-permissions:
-  contents: read
 
 jobs:
   build:
     runs-on: macos-15
     steps:
-      - name: Checkout NGA Orbit
-        uses: actions/checkout@v4
-        with:
-          repository: KiZmzz/nga-orbit-ios
-          path: src
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-      - name: Install build tools
-        run: brew install zip
+    - name: Select Xcode
+      run: sudo xcode-select -s /Applications/Xcode_16.4.app/Contents/Developer
 
-      - name: Generate Xcode project
-        working-directory: src
-        run: python3 scripts/generate_project.py
+    - name: Build for iOS
+      run: |
+        xcodebuild -project NGAReader.xcodeproj \
+          -scheme NGAReader \
+          -configuration Release \
+          -derivedDataPath build \
+          -destination 'generic/platform=iOS' \
+          CODE_SIGNING_ALLOWED=NO
 
-      - name: Build unsigned Release IPA
-        working-directory: src
-        run: |
-          xcodebuild \
-            -project NGAReader.xcodeproj \
-            -scheme NGAReader \
-            -configuration Release \
-            -destination 'generic/platform=iOS' \
-            -derivedDataPath ../DerivedData \
-            CODE_SIGNING_ALLOWED=NO \
-            build
+    - name: Create IPA
+      run: |
+        mkdir -p Payload
+        cp -r build/Build/Products/Release-iphoneos/NGAReader.app Payload/
+        zip -r NGAReader.ipa Payload/
+        rm -rf Payload
 
-      - name: Package IPA
-        working-directory: src
-        run: |
-          APP=$(find ../DerivedData/Build/Products -name 'NGAReader.app' -type d | head -n 1)
-          mkdir Payload
-          ditto "${APP}" Payload/NGAReader.app
-          zip -qr ../NGA-Orbit-unsigned.ipa Payload
-
-      - name: Upload IPA
-        uses: actions/upload-artifact@v4
-        with:
-          name: NGA-Orbit-unsigned
-          path: NGA-Orbit-unsigned.ipa
-          if-no-files-found: error
+    - name: Upload IPA
+      uses: actions/upload-artifact@v4
+      with:
+        name: NGA-Orbit-iOS
+        path: NGAReader.ipa
+        retention-days: 30
