@@ -16,12 +16,7 @@ jobs:
           repository: KiZmzz/nga-orbit-ios
           path: src
 
-      - name: Select newest Xcode
-        uses: maxim-lobanov/setup-xcode@v1
-        with:
-          xcode-version: latest
-
-      - name: Install tools
+      - name: Install build tools
         run: brew install zip
 
       - name: Generate Xcode project
